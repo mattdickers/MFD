@@ -1,0 +1,6 @@
+1. Use M0 to find M1
+2. Use M1 to find E1 iterativly
+3. Use E1 to find cartesian position
+4. Rotate vectors
+5. Cartesian position to spherical coords
+6. Find latitude and longitude
