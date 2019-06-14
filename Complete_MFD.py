@@ -23,7 +23,7 @@ activeButton     = ""
 activeScroll     = [0, 0]
 selectScroll     = []
 returned         = ""
-screenShowing    = "home"
+screenShowing    = "flight"
 dialogueBox      = None
 oldDialogueBox   = None
 clicked          = None
@@ -165,8 +165,17 @@ def rectFunc(pos, size, borderWidth, borderColor, innerColor, defPos = "topLeft"
                 pygame.draw.rect(screen, borderColor, area, 1)
 
 
-def textFunc(text, textColor, pos, direc = "left", fontSize = 20) :
+def textFunc(text, textColor, pos, direc = "left", fontSize = 20, widthLim = 0) :
     textFont = pygame.font.SysFont("monospace", fontSize)
+    textObject = textFont.render(text, False, textColor)
+    count = 0
+    #Adjust font size to fit given width
+    while textObject.get_width() > widthLim:
+        if widthLim == 0:
+            break
+        count += 1
+        textFont = pygame.font.SysFont("monospace", fontSize - count)
+        textObject = textFont.render(text, False, textColor)
 
     if direc == "centre" :
         posX = (pos[0] - textFont.size(text)[0] / 2)
@@ -177,8 +186,6 @@ def textFunc(text, textColor, pos, direc = "left", fontSize = 20) :
         posX = (pos[0] - distToDec)
     else:
         posX = pos[0]
-    # create text object
-    textObject = textFont.render(text, False, textColor)
     # add/render the text to screen
     screen.blit(textObject, (posX, pos[1]))
 
@@ -2013,6 +2020,7 @@ def flightDataScreen() :
     speed = vessel.flight(surfaFrame).speed
     horiV = vessel.flight(surfaFrame).horizontal_speed
     vertV = vessel.flight(surfaFrame).vertical_speed
+    mach = vessel.flight(surfaFrame).mach
     
     try :
         angle = math.atan(round(vertV, 3) / round(horiV, 3))
@@ -2045,6 +2053,7 @@ def flightDataScreen() :
     textFunc(str(round(speed, 2)) + "m/s", c["red"],           (100 + veloPosX, 65 + veloPosY), "left")
     # angle label
     textFunc(str(round(angle * -1, 1)) + "°", c["red"], (140 + veloPosX, 100 + veloPosY), "left")
+    textFunc("Mach " + str(round(mach, 2)), c["red"], (100 + veloPosX, 215 + veloPosY), "left")
 
 
     ##### thrust section #####
