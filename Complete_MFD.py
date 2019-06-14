@@ -6,13 +6,21 @@ import sys
 import time
 import wernher
 import numpy as np
+import serial
 from colorsList import c
 
 pygame.init()
 
 pygame.display.set_caption("MFD")
-icon = pygame.image.load(r"pictures\icon.png")
+icon = pygame.image.load(r"pictures/icon.png")
 pygame.display.set_icon(icon)
+
+# ser = serial.Serial()
+# ser.baudrate = 57600
+# ser.port = 'COM3'
+# ser.open()
+# print(ser.is_open)
+# print(ser.name)
 
 width  = 1204
 height = 768
@@ -59,7 +67,8 @@ radAltLimit      = 0
 touchScreen  = None
 fullscreen   = None
 sideButtons  = None
-mainSettings = ["", "", ""]
+realButtons  = None
+mainSettings = ["", "", "", ""]
 
 
 extraScreens        = ["science", "maneuver", "graph", "engine"] # this is for the settings dialogue on the home screen
@@ -91,49 +100,49 @@ font      = pygame.font.SysFont("monospace", 20)
 bigFont   = pygame.font.SysFont("monospace", 50)
 smallFont = pygame.font.SysFont("monospace", 16)
 
-logo = pygame.image.load(r"pictures\logo.bmp")
+logo = pygame.image.load(r"pictures/logo.bmp")
 
-orbitButton    = pygame.image.load(r"pictures\orbit data button.bmp")
-flightButton   = pygame.image.load(r"pictures\flight data button.bmp")
-resourceButton = pygame.image.load(r"pictures\resources button.bmp")
-genericButton  = pygame.image.load(r"pictures\generic button.bmp")
-yesButton      = pygame.image.load(r"pictures\yes button.bmp")
-noButton       = pygame.image.load(r"pictures\no button.bmp")
-homeButton     = pygame.image.load(r"pictures\home button.bmp")
-powerButton    = pygame.image.load(r"pictures\power button.bmp")
+orbitButton    = pygame.image.load(r"pictures/orbit data button.bmp")
+flightButton   = pygame.image.load(r"pictures/flight data button.bmp")
+resourceButton = pygame.image.load(r"pictures/resources button.bmp")
+genericButton  = pygame.image.load(r"pictures/generic button.bmp")
+yesButton      = pygame.image.load(r"pictures/yes button.bmp")
+noButton       = pygame.image.load(r"pictures/no button.bmp")
+homeButton     = pygame.image.load(r"pictures/home button.bmp")
+powerButton    = pygame.image.load(r"pictures/power button.bmp")
 
-joystickButton1 = pygame.image.load(r"pictures\up button.bmp")
-joystickButton2 = pygame.image.load(r"pictures\right button.bmp")
-joystickButton3 = pygame.image.load(r"pictures\down button.bmp")
-joystickButton4 = pygame.image.load(r"pictures\left button.bmp")
+joystickButton1 = pygame.image.load(r"pictures/up button.bmp")
+joystickButton2 = pygame.image.load(r"pictures/right button.bmp")
+joystickButton3 = pygame.image.load(r"pictures/down button.bmp")
+joystickButton4 = pygame.image.load(r"pictures/left button.bmp")
 
-materialsBayImage      = pygame.image.load(r"pictures\materials bay.bmp")
-mysteryGooImage        = pygame.image.load(r"pictures\mystery goo.bmp")
-accelerometerImage     = pygame.image.load(r"pictures\accelerometer.bmp")
-barometerImage         = pygame.image.load(r"pictures\barometer.bmp")
-gravityDetectorImage   = pygame.image.load(r"pictures\gravity detector.bmp")
-thermometerImage       = pygame.image.load(r"pictures\thermometer.bmp")
-atmosphereSensorImage  = pygame.image.load(r"pictures\atmosphere sensor.bmp")
-asteroidTelescopeImage = pygame.image.load(r"pictures\asteroid telescope.bmp")
-moddedPartImage        = pygame.image.load(r"pictures\modded_part.bmp")
-scrollUpImage          = pygame.image.load(r"pictures\scroll up.bmp")
-scrollDownImage        = pygame.image.load(r"pictures\scroll down.bmp")
-runExperimentImage     = pygame.image.load(r"pictures\run.bmp")
-transmitData           = pygame.image.load(r"pictures\transmit.bmp")
-recycleExperiment      = pygame.image.load(r"pictures\recycle experiment.bmp")
-settingsIcon           = pygame.image.load(r"pictures\settings icon.bmp")
+materialsBayImage      = pygame.image.load(r"pictures/materials bay.bmp")
+mysteryGooImage        = pygame.image.load(r"pictures/mystery goo.bmp")
+accelerometerImage     = pygame.image.load(r"pictures/accelerometer.bmp")
+barometerImage         = pygame.image.load(r"pictures/barometer.bmp")
+gravityDetectorImage   = pygame.image.load(r"pictures/gravity detector.bmp")
+thermometerImage       = pygame.image.load(r"pictures/thermometer.bmp")
+atmosphereSensorImage  = pygame.image.load(r"pictures/atmosphere sensor.bmp")
+asteroidTelescopeImage = pygame.image.load(r"pictures/asteroid telescope.bmp")
+moddedPartImage        = pygame.image.load(r"pictures/modded_part.bmp")
+scrollUpImage          = pygame.image.load(r"pictures/scroll up.bmp")
+scrollDownImage        = pygame.image.load(r"pictures/scroll down.bmp")
+runExperimentImage     = pygame.image.load(r"pictures/run.bmp")
+transmitData           = pygame.image.load(r"pictures/transmit.bmp")
+recycleExperiment      = pygame.image.load(r"pictures/recycle experiment.bmp")
+settingsIcon           = pygame.image.load(r"pictures/settings icon.bmp")
 
-Ap_markerL             = pygame.image.load(r"pictures\Ap_markerL.png")
-Pe_markerL             = pygame.image.load(r"pictures\Pe_markerL.png")
-Ap_markerM             = pygame.image.load(r"pictures\Ap_markerM.png")
-Pe_markerM             = pygame.image.load(r"pictures\Pe_markerM.png")
-Ap_markerS             = pygame.image.load(r"pictures\Ap_markerS.png")
-Pe_markerS             = pygame.image.load(r"pictures\Pe_markerS.png")
+Ap_markerL             = pygame.image.load(r"pictures/Ap_markerL.png")
+Pe_markerL             = pygame.image.load(r"pictures/Pe_markerL.png")
+Ap_markerM             = pygame.image.load(r"pictures/Ap_markerM.png")
+Pe_markerM             = pygame.image.load(r"pictures/Pe_markerM.png")
+Ap_markerS             = pygame.image.load(r"pictures/Ap_markerS.png")
+Pe_markerS             = pygame.image.load(r"pictures/Pe_markerS.png")
 
-vesselManned           = pygame.image.load(r"pictures\vessel manned.bmp")
-relayImage             = pygame.image.load(r"pictures\relay.bmp")
-KSCimage               = pygame.image.load(r"pictures\KSC image.bmp")
-noSignal               = pygame.image.load(r"pictures\no signal.bmp")
+vesselManned           = pygame.image.load(r"pictures/vessel manned.bmp")
+relayImage             = pygame.image.load(r"pictures/relay.bmp")
+KSCimage               = pygame.image.load(r"pictures/KSC image.bmp")
+noSignal               = pygame.image.load(r"pictures/no signal.bmp")
 
 
 
@@ -254,7 +263,7 @@ def timeConvert(seconds, value=None):
         return "%02d:%02d:%02d" % (h, m, s)
 
 
-def siFormat(num, sigFigs = 7) :
+def siFormat(num, sigFigs = 4) :
     #num = round(num)
 
     if num > 1000000000 :
@@ -263,14 +272,14 @@ def siFormat(num, sigFigs = 7) :
         return str(int(num / 1000000)) + "M"
     elif num > 1000 :
         return str(int(num / 1000)) + "k"
+    elif num < 0.000001 :
+        return str(int(num * 1000000000)) + "n"
+    elif num < 0.001 :
+        return str(int(num * 1000000)) + "µ"
+    elif num < 1 :
+        return str(int(num * 1000)) + "m"
     elif num < 1000 :
         return '%s' % float(str("%." + str(sigFigs) + "g") % num)
-    elif num < 1 :
-        return str(int(num / 1000)) + "m"
-    elif num < 1 :
-        return str(int(num / 1000000)) + "µ"
-    elif num < 1 :
-        return str(int(num / 1000000000)) + "n"
 
     #numRet = '%s' % float(str("%." + str(3) + "g") % num)
 
@@ -553,6 +562,19 @@ def checkButtons(pos):
                 1]:
                 # return button name
                 return buttonList[x][2]
+
+
+def detectButton() :
+    data        = ser.readline()
+    #print(data)
+    data        = str(data)
+    numbers     = []
+
+    for letter in data :
+        if letter.isdigit() :
+            numbers.append(letter)
+
+    return int(numbers[0] + numbers[1])
 
 
 def checkScrollButtons(selectedRegPos):
@@ -1017,7 +1039,7 @@ def DrawMap(mapPos, body, mapType, level, prevOrbit, nextOrbit, givenColor, vess
     detail       = 200
     parent_body  = vessel.orbit.body
 
-    mapImages = [r"pictures\\map_images\\"+str(body)+"\\"+str(mapType)+"\\"+str(level)+"\\"+str(column)+"_"+str(row)+".png"
+    mapImages = [r"pictures/map_images/"+str(body)+"/"+str(mapType)+"/"+str(level)+"/"+str(column)+"_"+str(row)+".png"
                  for column in range(levelsDict[level][0]) for row in range(levelsDict[level][1])]
     for image in range(len(mapImages)):
         screen.blit(pygame.image.load(mapImages[image]),(mapPos[0]+(imgSize*int(mapImages[image][-7]))
@@ -1166,32 +1188,34 @@ def toggleIndicator(pos, state) :
     rectFunc((toggPos + pos[0], 4 + pos[1]), (12, 12), 2, toggColor, c["white"])
 
 
-def drawOrbit(orbitingVessel, givenColor, pos) :
+def drawOrbit(givenOrbit, givenColor, pos) :
 
     # orbit variables
     # peri. and apo. are from centre of mass
-    semiMajor        = orbitingVessel.orbit.semi_major_axis
-    semiMinor        = orbitingVessel.orbit.semi_minor_axis
-    timeToApo        = orbitingVessel.orbit.time_to_apoapsis
-    eccentricity     = orbitingVessel.orbit.eccentricity
-    eccentricAnomaly = orbitingVessel.orbit.eccentric_anomaly
-    trueAnomaly      = orbitingVessel.orbit.true_anomaly
-    longAscending    = orbitingVessel.orbit.longitude_of_ascending_node
-    arguPeriapsis    = orbitingVessel.orbit.argument_of_periapsis
+    semiMajor        = givenOrbit.semi_major_axis
+    semiMinor        = givenOrbit.semi_minor_axis
+    timeToApo        = givenOrbit.time_to_apoapsis
+    eccentricity     = givenOrbit.eccentricity
+    eccentricAnomaly = givenOrbit.eccentric_anomaly
+    trueAnomaly      = givenOrbit.true_anomaly
+    longAscending    = givenOrbit.longitude_of_ascending_node
+    arguPeriapsis    = givenOrbit.argument_of_periapsis
     longPeriapsis    = longAscending + arguPeriapsis
-    apoapsis         = orbitingVessel.orbit.apoapsis
-    soiRadius        = orbitingVessel.orbit.body.sphere_of_influence
+    apoapsis         = givenOrbit.apoapsis
+    soiRadius        = givenOrbit.body.sphere_of_influence
     focusCentre      = math.sqrt(((semiMajor / scale) / 2) ** 2 - ((semiMinor / scale) / 2) ** 2)
     longPeriapsis    = -longPeriapsis
     situation        = ""
 
+    """
     try :
-        situation = str(orbitingVessel.situation)[16:]
+        situation = str(givenOrbit.situation)[16 :]
     except AttributeError :
         try :
-            situation = str(orbitingVessel.orbit.situation)[16:]
+            situation = str(givenOrbit.orbit.situation)[16 :]
         except AttributeError :
             pass
+    """
 
     xPos, yPos = pos[0], pos[1]
 
@@ -1211,7 +1235,8 @@ def drawOrbit(orbitingVessel, givenColor, pos) :
     orbitCross = translate(orbitCross, (xPos, yPos))
 
     # escapes
-    if "escaping" in situation or apoapsis > soiRadius :
+    #if "escaping" in situation or apoapsis > soiRadius :
+    if apoapsis > soiRadius or apoapsis < 0 :
         closed = False
 
         # elliptical escape
@@ -1464,21 +1489,17 @@ def orbitDataScreen() :
         targAngleToApo          = (targTimeToApo / targPeriod) * (2 * math.pi)
         targetBody              = target.orbit.body
 
-        # targTimeToClosestApproach = timeConvert(vessel.orbit.time_of_closest_approach(target) - conn.space_center.ut,"h")
-        # print(targTimeToClosestApproach) #FINISH
-        # VERY BROKEN # TODO
-        targetName              = target.name
-        targSoiRadius           = target.orbit.body.sphere_of_influence
-        # \/ this moved to end because these lines cause exception when targeting body
-        targRelativeInclination = vessel.orbit.relative_inclination(target.orbit)
-        targDistance            = vessel.orbit.distance_at_closest_approach(target.orbit)
-        targSituation           = str(target.situation)[16 :]
+        targTimeToClosestApproach = vessel.orbit.time_of_closest_approach(target.orbit) - conn.space_center.ut
+        #print(timeConvert(targTimeToClosestApproach, "smart"))
+        targetName                = target.name
+        targSoiRadius             = target.orbit.body.sphere_of_influence
+        targRelativeInclination   = vessel.orbit.relative_inclination(target.orbit)
+        targDistance              = vessel.orbit.distance_at_closest_approach(target.orbit)
 
-        try :
-            # distance from focus to center
-            targFocusCentre = math.sqrt(math.pow((targSemiMajor / scale) / 2, 2) - math.pow((targSemiMinor / scale) / 2, 2))
-        except ValueError :
-            targFocusCentre = 0
+        if target._class_name != "CelestialBody" :
+            targSituation = str(target.situation)[16 :]
+        else :
+            targSituation = "N/A"
 
     except AttributeError :
         targeting = False
@@ -1487,11 +1508,15 @@ def orbitDataScreen() :
 
     try :
         mainBody = vesselBody.orbit.body
+        # when orbiting a planet this stops the main body from becoming the sun despite nothing orbiting the sun:
         if mainBody.name == "Sun" :
             mainBody = vesselBody
         if targeting or maneuver :
+            # when orbiting a moon this sets the main body to the moon instead of to the planet:
             if targetBody == vesselBody or maneuverBody == vesselBody :
                 mainBody = vesselBody
+        if targetBody.name == "Sun" :
+            mainBody = targetBody
     except AttributeError :
         mainBody = vesselBody
 
@@ -1535,9 +1560,19 @@ def orbitDataScreen() :
     # centre pos of the orbit:
     orbitPosX, orbitPosY = leftAlign + 300, topAlign + 500
 
+    nextOrbit = False
+
+    # soi changes:
+    if vessel.orbit.next_orbit :
+        nextOrbit     = vessel.orbit.next_orbit
+        nextOrbitBody = nextOrbit.body
+        if nextOrbitBody != vesselBody :
+            mainBody = nextOrbitBody
+
+    """
     bodyList = (vesselBody, targetBody, maneuverBody)
     vesselSituations = (situation, targSituation, maneuverSituation)
-
+    
     # if any craft are orbiting the main body
     if mainBody in bodyList :
         semiMajors  = [semiMajor, maneuverSemiMajor, targSemiMajor]
@@ -1548,10 +1583,9 @@ def orbitDataScreen() :
             soiRadii   = [soiRadius, maneuverSoiRadius, targSoiRadius]
             largestSoi = max(soiRadii)
             scale      = (largestSoi / (orbitSize * 1.4))
-    # if
+    # changes the scale based on the orbit of the largest body's orbit
     for i, body in enumerate(bodyList) :
-        if mainBody != body and body != 0 :
-
+        if mainBody != body and body != 0 and body.name != "Sun" :
             if i == 0 :
                 semiMajors = [semiMajor, maneuverSemiMajor, targSemiMajor, vesselBody.orbit.semi_major_axis]
                 largestAxis = max(semiMajors)
@@ -1564,6 +1598,49 @@ def orbitDataScreen() :
                 semiMajors = [semiMajor, maneuverSemiMajor, targSemiMajor, maneuverBody.orbit.semi_major_axis]
                 largestAxis = max(semiMajors)
                 scale = (largestAxis / (orbitSize * 1.3))
+    """
+
+    orbitAxes = []
+    for i in range(10) :
+        orbitAxes.append(0)
+
+    orbitAxes[0] = semiMajor
+    orbitAxes[1] = targSemiMajor
+    orbitAxes[2] = maneuverSemiMajor
+
+    if "escaping" in situation :
+        orbitAxes[0] = 0
+        orbitAxes[3] = vesselBody.sphere_of_influence
+    if "escaping" in targSituation :
+        orbitAxes[1] = 0
+        orbitAxes[4] = targetBody.sphere_of_influence
+    if "escaping" in maneuverSituation :
+        orbitAxes[2] = 0
+        orbitAxes[5] = maneuverBody.sphere_of_influence
+
+    # try and except because when transfering between soi's the target will be unasigned and break it
+    try :
+        if vesselBody != targetBody :
+            if vesselBody.name != "Sun" :
+                orbitAxes[6] = vesselBody.orbit.semi_major_axis
+            if targetBody.name != "Sun" and targetBody != mainBody :
+                orbitAxes[7] = targetBody.orbit.semi_major_axis
+    except AttributeError :
+        orbitAxes[6] = 0
+        orbitAxes[7] = 0
+
+    orbitAxes[8] = 0
+    orbitAxes[9] = 0
+    if nextOrbit :
+        orbitAxes[8] = nextOrbit.semi_major_axis
+        print("here")
+        orbitAxes[9] = 0
+
+    largestAxis = max(orbitAxes)
+    scale = largestAxis / (orbitSize * 1)
+
+    #print(orbitAxes.index(max(orbitAxes)))
+    #print(orbitAxes[orbitAxes.index(max(orbitAxes))])
 
 
     ##### moons n stuff #####
@@ -1571,6 +1648,9 @@ def orbitDataScreen() :
     satellites = mainBody.satellites
 
     bodyPositions = {}
+
+    bodyPositions.update({mainBody.name : (orbitPosX, orbitPosY)})
+
     if satellites :
         for satellite in satellites :
             # drawing orbits
@@ -1604,7 +1684,7 @@ def orbitDataScreen() :
             # translate to planet
             sateOrbitCross = translate(sateOrbitCross, (orbitPosX, orbitPosY))
             # draw the lines
-            drawOrbit(satellite, c["darkGrey"], (orbitPosX, orbitPosY))
+            drawOrbit(satellite.orbit, c["darkGrey"], (orbitPosX, orbitPosY))
             drawCross(bodyColor, sateOrbitCross[0], 5)
 
             bodyPositions.update({sateName : sateOrbitCross[0]})
@@ -1625,7 +1705,15 @@ def orbitDataScreen() :
     vesselOrbitPos = (orbitPosX, orbitPosY)
     if vesselBody != mainBody :
         vesselOrbitPos = bodyPositions[vesselBody.name]
-    drawOrbit(vessel, c["guiBlue"], vesselOrbitPos)
+    drawOrbit(vessel.orbit, c["guiBlue"], vesselOrbitPos)
+
+    if vessel.orbit.next_orbit :
+        nextOrbit     = vessel.orbit.next_orbit
+        nextOrbitBody = vessel.orbit.next_orbit.body
+        nextOrbitPos  = vesselOrbitPos
+        if nextOrbitPos != vesselBody :
+            nextOrbitPos = bodyPositions[nextOrbitBody.name]
+        drawOrbit(nextOrbit, c["maneuverOrange"], nextOrbitPos)
 
     if targeting :
 
@@ -1633,10 +1721,10 @@ def orbitDataScreen() :
         if targetBody != vesselBody :
             if targetBody != mainBody :
                 targetPos = bodyPositions[targetBody.name]
-        drawOrbit(target, c["targetYellow"], targetPos)
+        drawOrbit(target.orbit, c["targetYellow"], targetPos)
 
     if maneuver :
-        drawOrbit(maneuverNode, c["maneuverOrange"], (orbitPosX, orbitPosY))
+        drawOrbit(maneuverNode.orbit, c["maneuverOrange"], (orbitPosX, orbitPosY))
 
     ##### body #####
 
@@ -1819,9 +1907,9 @@ def orbitDataScreen() :
         textFunc("Cl Appr: ", titleColor, (20 + textPosX, 150 + textPosY), "left")
         textFunc("Cl Dist: ", titleColor, (20 + textPosX, 170 + textPosY), "left")
         textFunc("Rel Inc: ", titleColor, (20 + textPosX, 190 + textPosY), "left")
-        textFunc("BROKEN", c["white"], (280 + textPosX, 150 + textPosY), "right")
+        textFunc(str(timeConvert(targTimeToClosestApproach, "smart")), c["white"], (280 + textPosX, 150 + textPosY), "right")
         textFunc(str("{:,}".format(int(targDistance))) + "m", infoColor, (280 + textPosX, 170 + textPosY), "right")
-        textFunc(str(round(math.degrees(targRelativeInclination))) + "°", infoColor, (280 + textPosX, 190 + textPosY), "right")
+        textFunc(str(round(math.degrees(targRelativeInclination), 4)) + "°", infoColor, (280 + textPosX, 190 + textPosY), "right")
     # seperators
     # horz
     pygame.draw.line(screen, c["grey"], (5 + textPosX, 145 + textPosY), (225 + textPosX, 145 + textPosY), 1)
@@ -1864,15 +1952,15 @@ def flightDataScreen() :
     ##### heading incicator #####
     #############################
     headPosX, headPosY = 512 + leftAlign, 130 + topAlign
-    width, height = 432, 50
+    headWidth, headHeight = 432, 50
 
     heading = vessel.flight().heading
 
     # borders
-    pygame.draw.line(screen, c["white"], (-(width / 2) + headPosX, 50 + headPosY), ((width / 2) + headPosX, 50 + headPosY), 1)
-    pygame.draw.line(screen, c["white"], (-(width / 2) + headPosX, 0 + headPosY), ((width / 2) + headPosX, 0 + headPosY), 1)
-    pygame.draw.line(screen, c["white"], (-(width / 2) + headPosX, 0 + headPosY), (-(width / 2) + headPosX, 50 + headPosY), 1)
-    pygame.draw.line(screen, c["white"], ((width / 2) + headPosX, 0 + headPosY), ((width / 2) + headPosX, 50 + headPosY), 1)
+    pygame.draw.line(screen, c["white"], (-(headWidth / 2) + headPosX, 50 + headPosY), ((headWidth / 2) + headPosX, 50 + headPosY), 1)
+    pygame.draw.line(screen, c["white"], (-(headWidth / 2) + headPosX, 0 + headPosY), ((headWidth / 2) + headPosX, 0 + headPosY), 1)
+    pygame.draw.line(screen, c["white"], (-(headWidth / 2) + headPosX, 0 + headPosY), (-(headWidth / 2) + headPosX, 50 + headPosY), 1)
+    pygame.draw.line(screen, c["white"], ((headWidth / 2) + headPosX, 0 + headPosY), ((headWidth / 2) + headPosX, 50 + headPosY), 1)
 
     # drawing
     # list of angles where a line will be shown
@@ -1913,9 +2001,9 @@ def flightDataScreen() :
             else :
                 cardDirecLabel = ""
 
-        if headPosX - width/2 < xPos + headPosX < headPosX + width/2 :
+        if headPosX - headWidth/2 < xPos + headPosX < headPosX + headWidth/2 :
             pygame.draw.line(screen, c["yellow"], (xPos + headPosX, headPosY + yOffset),
-                                                  (xPos + headPosX, (headPosY + height) - yOffset))
+                                                  (xPos + headPosX, (headPosY + headHeight) - yOffset))
             if anglesList[i] % 90 == 0 :
                 textFunc(cardDirecLabel, c["white"], (xPos + headPosX, headPosY + 10), "centre", 30)
 
@@ -1984,9 +2072,9 @@ def flightDataScreen() :
     # atmospheric percentage
     textFunc(str(atmosPercent) + "%", c["guiBlue"], (100 + altiPosX, 305 + altiPosY), "left")
     # moving terrain height
-    textFunc(str(siFormat(terrainHeight)) + "M", c["guiBlue"], (terrainBarPoint[0] + 35, terrainBarPoint[1] - 10), "left")
+    textFunc(str(siFormat(terrainHeight)) + "m", c["guiBlue"], (terrainBarPoint[0] + 35, terrainBarPoint[1] - 10), "left")
     # radar altitude
-    textFunc(str(siFormat(radarAltitude)) + "M", c["guiBlue"], (130 + altiPosX, 50 + altiPosY), "centre")
+    textFunc(str(siFormat(radarAltitude)) + "m", c["guiBlue"], (130 + altiPosX, 50 + altiPosY), "centre")
 
     ##### pressure section #####
     ############################
@@ -2394,8 +2482,8 @@ def resourceScreen() :
     #alteGen = elecGeneration("panels")
     #cellGen = elecGeneration("panels")
     #geneGen = elecGeneration("panels")
-    panels     = elecGeneration()["panels"]
-    paneGen    = 0
+    #panels     = elecGeneration()["panels"]
+    #paneGen    = 0
 
     #bar(paneGen,     (30 + charPosX, 150 + charPosY), 200, 2, c["guiBlue"], 1, 0) # panels
     if panelsExpos is None :
@@ -2595,27 +2683,28 @@ def homeScreen() :
 
     spacing = 100
 
-    vessels = findVessels()
-    fullVesselList = vessels[:]
+    vesselsOnScreenList = findVessels()
+    vesselsCompleteList = vesselsOnScreenList[:]
 
-    print(vesselSelect)
-    print(vesselScroll)
-    print()
+    #print(vesselSelect)
+    #print(vesselScroll)
+    #print()
 
     # makes sure the list doesn't go off screen
-    if len(fullVesselList) > 6 :
-        del vessels[vesselScroll + 6:]
-        del vessels[:vesselScroll]
+    if len(vesselsCompleteList) > 6 :
+        del vesselsOnScreenList[vesselScroll + 6:]
+        del vesselsOnScreenList[:vesselScroll]
 
-        #if len(fullVesselList) > 6 :
-        if len(vessels) == 6 :
+        #if len(vesselsCompleteList) > 6 :
+        if len(vesselsOnScreenList) == 6 :
             # down arrow
-            pygame.draw.lines(screen, c["pink"], False, ((220 + leftAlign, 710 + topAlign),
+            pygame.draw.lines(screen, c["white"], False, ((220 + leftAlign, 710 + topAlign),
                                                      (230 + leftAlign, 720 + topAlign),
                                                      (240 + leftAlign, 710 + topAlign)), 3)
-        if len(vessels) <= 6 and vesselScroll != 0 :
+
+        if len(vesselsOnScreenList) <= 6 and vesselScroll != 0 :
             # up arrow
-            pygame.draw.lines(screen, c["red"], False, ((220 + leftAlign, 80 + topAlign),
+            pygame.draw.lines(screen, c["white"], False, ((220 + leftAlign, 80 + topAlign),
                                                      (230 + leftAlign, 70 + topAlign),
                                                      (240 + leftAlign, 80 + topAlign)), 3)
 
@@ -2636,12 +2725,12 @@ def homeScreen() :
     # select is what is selected from the list on screen
 
     if activeButton == "b0" :
-        # within first six vessels
+        # within first six vesselsOnScreenList
         if vesselScroll == 0 :
             # selcted vessel isn't 0
             if vesselSelect != 0:
                 vesselSelect -= 1
-        # beyond first six vessels
+        # beyond first six vesselsOnScreenList
         if vesselScroll != 0 :
             print("1")
             # first vessel is selected
@@ -2655,11 +2744,11 @@ def homeScreen() :
 
     elif activeButton == "b1" :
         # stops you scrolling off the top of the list     NOTE: top refers to largest index number i.e. the bottom of the displayed (on screen) list
-        if vesselSelect < len(fullVesselList) - 1 - vesselScroll :
+        if vesselSelect < len(vesselsCompleteList) - 1 - vesselScroll :
             vesselSelect += 1
         # changes whole list when scrolling off top of list
-        if vesselSelect == len(vessels) :
-            if vesselSelect + vesselScroll < len(fullVesselList) - 1 :
+        if vesselSelect == len(vesselsOnScreenList) :
+            if vesselSelect + vesselScroll <= len(vesselsCompleteList) - 1 :
                 vesselScroll = vesselScroll + 6
                 vesselSelect = 0
 
@@ -2686,7 +2775,7 @@ def homeScreen() :
 
     # boxes
 
-    for i, Vessel in enumerate(vessels) :
+    for i, Vessel in enumerate(vesselsOnScreenList) :
         # ensures the selected box is correct color
         boxColor = c["dialGrey"]
 
@@ -2793,7 +2882,7 @@ def homeScreen() :
         textFunc(line4, c["white"], (200 +leftAlign, 140 + (i * spacing) + topAlign), "left", 16)
         textFunc(line5, c["white"], (15  +leftAlign, 160 + (i * spacing) + topAlign), "left", 16)
 
-        if vessels[i] == vessel:
+        if vesselsOnScreenList[i] == vessel:
             textFunc("Active Vessel",c["green"],(450+leftAlign,160+(100*i)+topAlign),"right",16)
 
 
@@ -3223,8 +3312,8 @@ def graphScreen():
 
     if xLimit <= 0 :
         xLimit = 1
-    if altLimit == 0 :
-        altLimit = 10
+    if altLimit <= 0 :
+        altLimit = 100
     if velLimit <= 0 :
         velLimit = 10
 
@@ -3389,6 +3478,7 @@ def startupScreen() :
     global touchScreen
     global buttonType
     global sideButtons
+    global realButtons
     global fullscreen
     global vessel
     global gameTimeText
@@ -3405,9 +3495,9 @@ def startupScreen() :
 
     pygame.display.update()
 
-    homeScreenFunctions = settingsRead(r"settings\home screen shortcut settings.txt")
-    mainSettings        = settingsRead(r"settings\main settings.txt")
-    graphSettings       = settingsRead(r"settings\graph settings.txt")
+    homeScreenFunctions = settingsRead(r"settings/home screen shortcut settings.txt")
+    mainSettings        = settingsRead(r"settings/main settings.txt")
+    graphSettings       = settingsRead(r"settings/graph settings.txt")
 
     if mainSettings[0] == "True" :
         fullscreen = True
@@ -3425,6 +3515,11 @@ def startupScreen() :
     elif mainSettings[2] == "False" :
         touchScreen = False
         buttonType = 1
+
+    if mainSettings[3] == "True" :
+        realButtons = True
+    elif mainSettings[3] == "False" :
+        realButtons = False
 
     loadButtons()
     checkConnection()
@@ -3456,9 +3551,9 @@ def shutdownScreen() :
     textFunc("Shutting Down", c["white"], (512 + leftAlign, 600 + topAlign), "centre", 50)
     pygame.display.update()
 
-    settingsWrite(r"settings\home screen shortcut settings.txt", homeScreenFunctions)
-    settingsWrite(r"settings\main settings.txt", mainSettings)
-    settingsWrite(r"settings\graph settings.txt", graphSettings)
+    settingsWrite(r"settings/home screen shortcut settings.txt", homeScreenFunctions)
+    settingsWrite(r"settings/main settings.txt", mainSettings)
+    settingsWrite(r"settings/graph settings.txt", graphSettings)
 
     for i in range(0, 5) :
         rectFunc((500 + leftAlign, 650 + topAlign), (20, 20), 0, (10, 10, 10), (10, 10, 10))
@@ -3631,25 +3726,25 @@ def settingsDialogue() :
                     homeScreenFunctions[buttonToEdit-1] = "science"
                     dialogueBox = None
                     showBox = "main"
-                    #settingsWrite("settings\home screen shortcut settings.txt", homeScreenFunctions)
+                    #settingsWrite("settings/home screen shortcut settings.txt", homeScreenFunctions)
 
                 elif selectScroll[0] == "maneuver" :
                     homeScreenFunctions[buttonToEdit-1] = "maneuver"
                     dialogueBox = None
                     showBox = "main"
-                    #settingsWrite("settings\home screen shortcut settings.txt", homeScreenFunctions)
+                    #settingsWrite("settings/home screen shortcut settings.txt", homeScreenFunctions)
 
                 elif selectScroll[0] == "graph" :
                     homeScreenFunctions[buttonToEdit-1] = "graph"
                     dialogueBox = None
                     showBox = "main"
-                    #settingsWrite("settings\home screen shortcut settings.txt", homeScreenFunctions)
+                    #settingsWrite("settings/home screen shortcut settings.txt", homeScreenFunctions)
 
                 elif selectScroll[0] == "engine" :
                     homeScreenFunctions[buttonToEdit-1] = "engine"
                     dialogueBox = None
                     showBox = "main"
-                    #settingsWrite("settings\home screen shortcut settings.txt", homeScreenFunctions)
+                    #settingsWrite("settings/home screen shortcut settings.txt", homeScreenFunctions)
 
             # if 'no' button is selected
             elif not selectScroll[1] :
@@ -3682,25 +3777,25 @@ def settingsDialogue() :
             homeScreenFunctions[buttonToEdit - 1] = "science"
             dialogueBox = None
             showBox = "main"
-            #settingsWrite("settings\home screen shortcut settings.txt", homeScreenFunctions)
+            #settingsWrite("settings/home screen shortcut settings.txt", homeScreenFunctions)
 
         elif activeButton == "maneuver" :
             homeScreenFunctions[buttonToEdit - 1] = "maneuver"
             dialogueBox = None
             showBox = "main"
-            #settingsWrite("settings\home screen shortcut settings.txt", homeScreenFunctions)
+            #settingsWrite("settings/home screen shortcut settings.txt", homeScreenFunctions)
 
         elif activeButton == "graph" :
             homeScreenFunctions[buttonToEdit - 1] = "graph"
             dialogueBox = None
             showBox = "main"
-            #settingsWrite("settings\home screen shortcut settings.txt", homeScreenFunctions)
+            #settingsWrite("settings/home screen shortcut settings.txt", homeScreenFunctions)
 
         elif activeButton == "engine" :
             homeScreenFunctions[buttonToEdit - 1] = "engine"
             dialogueBox = None
             showBox = "main"
-            #settingsWrite("settings\home screen shortcut settings.txt", homeScreenFunctions)
+            #settingsWrite("settings/home screen shortcut settings.txt", homeScreenFunctions)
 
     # main function
     # I'm using functions so that i dont have to have multiple dialogue boxes to display multiple dialogue screens
@@ -3755,8 +3850,12 @@ def settingScreenDialogue() :
     global buttonType
     global fullscreen
     global sideButtons
+    global realButtons
     global screen
     global mainSettings
+    global leftAlign
+    global width
+    global height
 
     # the position of the dialogue box
     posX, posY = 5 + leftAlign, 50 + topAlign
@@ -3767,6 +3866,7 @@ def settingScreenDialogue() :
         newButton((posX + 20, posY + (lineSpace * 1) - 4), (324, 28), "fullscreen", buttonType, (0, 0), drawTime = "back")
         newButton((posX + 20, posY + (lineSpace * 2) - 4), (324, 28), "removeButtons", buttonType, (0, 1), drawTime = "back")
         newButton((posX + 20, posY + (lineSpace * 3) - 4), (324, 28), "touchScreen", buttonType, (0, 2), drawTime = "back")
+        newButton((posX + 20, posY + (lineSpace * 4) - 4), (324, 28), "realButtons", buttonType, (0, 3), drawTime = "back")
 
         runOnce1 = 1
 
@@ -3785,19 +3885,28 @@ def settingScreenDialogue() :
     ##### remove buttons #####
     ##########################
 
-    # displays toogle indicator only when touchscreen is true
-    if not touchScreen :
-        textFunc("* Remove Side Buttons", c["darkGrey"], (posX + 0, posY + (lineSpace * 2)), "left")
-        rectFunc((posX + 300, posY + (lineSpace * 2)), (40, 20), 1, c["white"], c["dialGrey"])
-    elif touchScreen :
-        textFunc("* Remove Side Buttons", c["white"], (posX + 0, posY + (lineSpace * 2)), "left")
-        toggleIndicator((posX + 300, posY + (lineSpace * 2)), sideButtons)
+    # displays toggle indicator only when fullscreen is true
+    #if not fullscreen :
+    #    textFunc("  Remove Side Buttons", c["darkGrey"], (posX + 0, posY + (lineSpace * 2)), "left")
+    #    rectFunc((posX + 300, posY + (lineSpace * 2)), (40, 20), 1, c["white"], c["dialGrey"])
+    #elif fullscreen :
+    textFunc("  Remove Side Buttons", c["white"], (posX + 0, posY + (lineSpace * 2)), "left")
+    toggleIndicator((posX + 300, posY + (lineSpace * 2)), sideButtons)
 
     ##### touch screen #####
     ########################
 
     textFunc("  Touch Screen", c["white"], (posX + 0, posY + (lineSpace * 3)), "left")
     toggleIndicator((posX + 300, posY + (lineSpace * 3)), touchScreen)
+
+    ##### real buttons #####
+    ########################
+
+    textFunc("  Real Buttons", c["white"], (posX + 0, posY + (lineSpace * 4)), "left")
+    toggleIndicator((posX + 300, posY + (lineSpace * 4)), realButtons)
+
+    ##### Button Logic #####
+    ########################
 
     if touchScreen :
         if activeButton == "touchScreen" :
@@ -3823,11 +3932,29 @@ def settingScreenDialogue() :
             if fullscreen :
                 screen = pygame.display.set_mode((1920, 1080), HWSURFACE | DOUBLEBUF | FULLSCREEN)
             elif not fullscreen:
-                if not displayWidth == width and not displayHeight == height :
-                    screen = pygame.display.set_mode((width, height), HWSURFACE | DOUBLEBUF | RESIZABLE)
+                #if not displayWidth == width and not displayHeight == height :
+                screen = pygame.display.set_mode((width, height), HWSURFACE | DOUBLEBUF | RESIZABLE)
 
         if activeButton == "removeButtons" :
             sideButtons = not sideButtons
+
+            if sideButtons :
+                clearButtons("reset")
+                leftAlign = 0
+                width, height = 1024, 768
+                screen = pygame.display.set_mode((width, height), HWSURFACE | DOUBLEBUF | RESIZABLE)
+                runOnce1 = 0
+            elif not sideButtons :
+                clearButtons("reset")
+                loadButtons()
+                leftAlign = 90
+                width, height = 1204, 768
+                screen = pygame.display.set_mode((width, height), HWSURFACE | DOUBLEBUF | RESIZABLE)
+                runOnce1 = 0
+
+        if activeButton == "realButtons" :
+            realButtons = not realButtons
+
 
     elif not touchScreen :
         # if 'yes' or 'no' button is pushed
@@ -3856,10 +3983,29 @@ def settingScreenDialogue() :
                 if selectScroll[0] == "fullscreen" :
                     fullscreen = not fullscreen
 
+                    if fullscreen :
+                        screen = pygame.display.set_mode((1920, 1080), HWSURFACE | DOUBLEBUF | FULLSCREEN)
+                    elif not fullscreen :
+                        # if not displayWidth == width and not displayHeight == height :
+                        screen = pygame.display.set_mode((width, height), HWSURFACE | DOUBLEBUF | RESIZABLE)
+
                 if selectScroll[0] == "removeButton" :
                     sideButtons = not sideButtons
 
-    mainSettings = [str(fullscreen), str(sideButtons), str(touchScreen)]
+                    if not sideButtons :
+                        clearButtons("reset")
+                        leftAlign = 0
+                        runOnce1 = 0
+                    elif sideButtons :
+                        clearButtons("reset")
+                        loadButtons()
+                        leftAlign = 90
+                        runOnce1 = 0
+
+                if selectScroll[0] == "realButtons" :
+                    realButtons = not realButtons
+
+    mainSettings = [str(fullscreen), str(sideButtons), str(touchScreen), str(realButtons)]
 
 
 # TRANSMIT POWER DIALOGUE
@@ -4068,6 +4214,7 @@ while 1 :
         # reset mouse button
         click = (0, 0, 0)
 
+
         # sets the select scroll to blank
         selectScroll = [checkScrollButtons(activeScroll), None]
 
@@ -4077,13 +4224,61 @@ while 1 :
         screen.fill((40, 40, 40))
 
         # edge lines
-        pygame.draw.line(screen, c["white"], (89, 5), (89, 763), 1)
-        pygame.draw.line(screen, c["white"], (1115, 5), (1115, 763), 1)
+        if not sideButtons :
+            pygame.draw.line(screen, c["white"], (89, 5), (89, 763), 1)
+            pygame.draw.line(screen, c["white"], (1115, 5), (1115, 763), 1)
 
         drawButtons("back")
         drawScrollButtons("back")
 
         oldDialogueBox = dialogueBox
+
+        if realButtons :
+            buttonInput = detectButton()
+            #buttonInput = 99
+
+            if buttonInput == 99 :
+                pass
+            elif buttonInput == 22 :
+                activeButton = "a1"
+            elif buttonInput == 23 :
+                activeButton = "a2"
+            elif buttonInput == 24 :
+                activeButton = "a3"
+            elif buttonInput == 25 :
+                activeButton = "a4"
+            elif buttonInput == 26 :
+                activeButton = "a5"
+            elif buttonInput == 27 :
+                activeButton = "a6"
+            elif buttonInput == 28 :
+                activeButton = "a7"
+            elif buttonInput == 29 :
+                activeButton = "a8"
+
+            elif buttonInput == 30 :
+                activeButton = "b1"
+            elif buttonInput == 31 :
+                activeButton = "b2"
+            elif buttonInput == 32 :
+                activeButton = "b3"
+            elif buttonInput == 33 :
+                activeButton = "b4"
+            elif buttonInput == 34 :
+                activeButton = "b5"
+            elif buttonInput == 35 :
+                activeButton = "b6"
+
+            elif buttonInput == 36 :
+                activeButton = "j1"
+            elif buttonInput == 37 :
+                activeButton = "j2"
+            elif buttonInput == 38 :
+                activeButton = "j3"
+            elif buttonInput == 39 :
+                activeButton = "j4"
+
+            print(buttonInput)
 
         if not touchScreen :
             for button in scrollButtonList :
@@ -4228,12 +4423,12 @@ while 1 :
         else :
             raise
     except (ConnectionResetError, AttributeError) :
-        print("Connection Error")
         if allowErrors :
             checkConnection()
             screenShowing = "error"
             error = "Connection Error"
             errorScreen()
+            print("Connection Error")
         else :
             raise
     except NameError :
@@ -4243,15 +4438,21 @@ while 1 :
                 print("trying")
                 vessel = conn.space_center.active_vessel
             except krpc.error.RPCError :
-                print("KRPC Error: No craft loaded")
-                screenShowing = "error"
-                error = "No Craft Loaded"
-                errorScreen()
+                if allowErrors :
+                    print("KRPC Error: No craft loaded")
+                    screenShowing = "error"
+                    error = "No Craft Loaded"
+                    errorScreen()
+                else :
+                    raise
             except AttributeError :
-                print("Connection Error")
-                screenShowing = "error"
-                error = "Connection Error"
-                errorScreen()
+                if allowErrors :
+                    print("Connection Error")
+                    screenShowing = "error"
+                    error = "Connection Error"
+                    errorScreen()
+                else :
+                    raise
         else :
             raise
     finally :
