@@ -2229,8 +2229,8 @@ def flightDataScreen() :
         rootSkin = parts[0].skin_temperature
 
         # part names
-        textFunc(parts[0].title,c["white"],(107.25 + tempPosX,tempPosY + 35),"centre")
-        textFunc(parts[hottestSkin].title, c["white"], (321.75 + tempPosX, tempPosY + 35), "centre")
+        textFunc(parts[0].title,c["white"],(107.25 + tempPosX,tempPosY + 35),"centre", widthLim=210)
+        textFunc(parts[hottestSkin].title, c["white"], (321.75 + tempPosX, tempPosY + 35), "centre", widthLim=210)
 
         # temp text
         textFunc(str(round(rootSkin,1))+"K / "+str(int(parts[0].max_skin_temperature))+"K",c["white"],(107.25 + tempPosX,tempPosY + 95),"centre")

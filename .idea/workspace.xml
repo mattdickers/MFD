@@ -4,8 +4,6 @@
     <list default="true" id="4c6588c0-e34d-422e-ae90-616ede113fc5" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Complete_MFD.py" beforeDir="false" afterPath="$PROJECT_DIR$/Complete_MFD.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/settings/main settings.txt" beforeDir="false" afterPath="$PROJECT_DIR$/settings/main settings.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/venv/pip-selfcheck.json" beforeDir="false" afterPath="$PROJECT_DIR$/venv/pip-selfcheck.json" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/venv/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -35,13 +33,13 @@
     <session id="-970890612">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
-          <entry key="project.closed" value="8" />
+          <entry key="project.closed" value="9" />
           <entry key="project.open.time.3" value="1" />
           <entry key="project.open.time.4" value="1" />
           <entry key="project.open.time.5" value="1" />
           <entry key="project.open.time.6" value="3" />
-          <entry key="project.open.time.7" value="2" />
-          <entry key="project.opened" value="8" />
+          <entry key="project.open.time.7" value="3" />
+          <entry key="project.opened" value="9" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
@@ -58,12 +56,12 @@
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
-          <entry key="py" value="4303" />
+          <entry key="py" value="4391" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="Python" value="4303" />
+          <entry key="Python" value="4391" />
         </counts>
       </usages-collector>
     </session>
@@ -73,8 +71,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/Complete_MFD.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="540">
-              <caret line="4226" column="11" selection-start-line="4226" selection-start-column="11" selection-end-line="4226" selection-end-column="11" />
+            <state relative-caret-position="346">
+              <caret line="2217" column="12" lean-forward="true" selection-start-line="2217" selection-start-column="12" selection-end-line="2217" selection-end-column="12" />
               <folding>
                 <element signature="e#0#11#0" expanded="true" />
               </folding>
@@ -144,6 +142,7 @@
       <find>font</find>
       <find>temperature</find>
       <find>string</find>
+      <find>tempera</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -301,6 +300,9 @@
       <module name="MFD" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
       <option name="SDK_HOME" value="C:\Users\mattd\Desktop\MFD\venv\Scripts\python.exe" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="true" />
@@ -349,7 +351,7 @@
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.1663113" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.16791044" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -463,8 +465,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/Complete_MFD.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="540">
-          <caret line="4226" column="11" selection-start-line="4226" selection-start-column="11" selection-end-line="4226" selection-end-column="11" />
+        <state relative-caret-position="346">
+          <caret line="2217" column="12" lean-forward="true" selection-start-line="2217" selection-start-column="12" selection-end-line="2217" selection-end-column="12" />
           <folding>
             <element signature="e#0#11#0" expanded="true" />
           </folding>
