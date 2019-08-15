@@ -70,7 +70,7 @@ else:
 
 
     #Stage DeltaV
-    stage = 4
+    stage = 6
     for Stage in range(stage,-1,-1):
         for part in partStages[Stage]: #if get error here, stage number probably too high/wrong
             part.highlighted = True
@@ -111,6 +111,7 @@ else:
                                        for fuel in fuelTypes for mass in fuelMasses[engineDecoupleStages[engineStages[stage][0]]])
     if stageDryMass == stageMass:
         stageDryMass = sum(part.dry_mass for part in partStages[stage]) + sum(part.dry_mass for part in partActivateStages[stage]) + sum(part.dry_mass for part in missingParts)
+
     #Current Specific Impulse of Each Engine
     engineIsp = {}
     seaLevelPressure = vessel.orbit.body.pressure_at(0)
@@ -139,8 +140,12 @@ else:
 
     mass = stageMass
     dryMass = stageDryMass
+    print(isp)
+    print(mass)
+    print(dryMass)
     Dv = (vessel.orbit.body.surface_gravity*isp)*(math.log(mass/dryMass))
 print(Dv)
 
-#TODO test with side boosters, might need to look at multiple engines activated in same stage
+#TODO something is wrong with the masses of side boosters; might be duplicating -> try finding masses based on engineStages for engines rather than part.
+#TODO might be duplication in part decouple stage
 #TODO add check for engine propellant type

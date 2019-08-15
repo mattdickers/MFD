@@ -7,6 +7,7 @@ import time
 import wernher
 import numpy as np
 import serial
+#import multiprocessing
 from colorsList import c
 
 pygame.init()
@@ -15,26 +16,22 @@ pygame.display.set_caption("MFD")
 icon = pygame.image.load(r"pictures/icon.png")
 pygame.display.set_icon(icon)
 
-# ser = serial.Serial()
-# ser.baudrate = 57600
-# ser.port = 'COM3'
-# ser.open()
-# print(ser.is_open)
-# print(ser.name)
+ser           = None
+serialWorking = False
 
-width  = 1204
-height = 768
-screen = pygame.display.set_mode((width, height),HWSURFACE|DOUBLEBUF|RESIZABLE)
+width  = 10
+height = 10
+#screen = pygame.display.set_mode((width, height),HWSURFACE|DOUBLEBUF|RESIZABLE)
 
 scale            = 0.1
 activeButton     = ""
 activeScroll     = [0, 0]
 selectScroll     = []
 returned         = ""
-screenShowing    = "flight"
+previousReturned = ""
+screenShowing    = "orbit"
 dialogueBox      = None
 oldDialogueBox   = None
-clicked          = None
 click            = [0, 0, 0]
 PI               = math.pi
 TWOPI            = 2 * PI
@@ -565,16 +562,72 @@ def checkButtons(pos):
 
 
 def detectButton() :
+    ser.write(str.encode("1"))
     data        = ser.readline()
-    #print(data)
     data        = str(data)
     numbers     = []
+
+    #ser.reset_input_buffer()
+
+    #print(data)
 
     for letter in data :
         if letter.isdigit() :
             numbers.append(letter)
 
+    if len(numbers) > 2 :
+        numbers = ["9", "9"]
+
     return int(numbers[0] + numbers[1])
+
+
+def checkRealButtons() :
+    global activeButton
+
+    buttonInput = detectButton()
+
+    #print(buttonInput)
+
+    if buttonInput == 99 :
+        pass
+    elif buttonInput == 22 :
+        return "a0"
+    elif buttonInput == 23 :
+        return "a1"
+    elif buttonInput == 24 :
+        return "a2"
+    elif buttonInput == 25 :
+        return "a3"
+    elif buttonInput == 26 :
+        return "a4"
+    elif buttonInput == 27 :
+        return "a5"
+    elif buttonInput == 29 :
+        return "a6"
+    elif buttonInput == 28 :
+        return "a7"
+
+    elif buttonInput == 33 :
+        return "b0"
+    elif buttonInput == 34 :
+        return "b1"
+    elif buttonInput == 35 :
+        return "b2"
+    elif buttonInput == 36 :
+        return "b3"
+    elif buttonInput == 37 :
+        return "b4"
+    elif buttonInput == 38 :
+        return "b5"
+
+    elif buttonInput == 30 :
+        return "j1"
+    elif buttonInput == 39 :
+        return "j2"
+    elif buttonInput == 32 :
+        return "j3"
+    elif buttonInput == 31 :
+        return "j4"
 
 
 def checkScrollButtons(selectedRegPos):
@@ -972,7 +1025,7 @@ def loadButtons():
         for i in range(x + 1, length):
             if buttonList[x][2] == buttonList[i][2]:
                 print("Error: two buttons have the same name")
-                print(buttonList[x][2])  # don't remove these lines fucktard
+                print(buttonList[x][2])  # don't remove these lines you fool
 
 
 # find vessels and remove debris from vessel list
@@ -1006,9 +1059,30 @@ def checkConnection() :
     global conn
 
     try :
-        conn = krpc.connect(name="MFD")
+        conn = krpc.connect(name = "MFD", address = "127.0.0.1", rpc_port = 50000 )
     except ConnectionRefusedError :
         conn = None
+
+
+# Check serial connection
+def checkSerial() :
+    global ser
+
+    ser = serial.Serial()
+    ser.baudrate = 9600
+    ser.port = 'COM3'
+    try :
+        ser.open()
+    except serial.serialutil.SerialException :
+        pass
+
+    if ser.is_open :
+        print(ser.is_open)
+        print(ser.name)
+        time.sleep(0.5)
+        return True
+    else :
+        return False
 
 
 # Writes data to given file file
@@ -1545,10 +1619,18 @@ def orbitDataScreen() :
     if maneuver :
         line = rotatePolygon(longLine, math.degrees(maneuverInclination), (inclPosX, inclPosY))
         pygame.draw.line(screen, c["maneuverOrange"], line[0], line[1], 1)
+        textFunc(str(round(math.degrees(maneuverInclination), 1)) + str("°"), c["maneuverOrange"],
+                 (inclPosX + (50 * math.cos(maneuverInclination) + 5), inclPosY + (50 * math.sin(maneuverInclination)) + 5), "left",
+                 fontSize=15)
 
     # orbit line
     line = rotatePolygon(baseLine, math.degrees(inclination), (inclPosX, inclPosY))
     pygame.draw.line(screen, c["guiBlue"], line[0], line[1], 1)
+
+    # inclination text
+    textFunc(str(round(math.degrees(inclination), 1)) + str("°"), c["guiBlue"],
+             (inclPosX + (50 * math.cos(inclination) + 2), inclPosY + (50 * math.sin(inclination)) + 2), "left",
+             fontSize=15)
 
 
     ##### ORBITS #####
@@ -2109,7 +2191,7 @@ def flightDataScreen() :
     horiV = vessel.flight(surfaFrame).horizontal_speed
     vertV = vessel.flight(surfaFrame).vertical_speed
     mach = vessel.flight(surfaFrame).mach
-    
+
     try :
         angle = math.atan(round(vertV, 3) / round(horiV, 3))
         angle = math.degrees(angle) * -1
@@ -3252,20 +3334,37 @@ def graphScreen():
     # takes the limit value and spits out edited version based on the name of the button being pushed
     # (buttons are named in graph settings dialogue function)
     def editVal(val) : # eg: val = altLimit
-        if activeButton[3] == "1" :
-            val = val - int(activeButton[4:])
-        if activeButton[3] == "2" :
-            val = val - int(activeButton[4:])
-        if activeButton[3] == "3" :
-            val = val - int(activeButton[4:])
-        if activeButton[3] == "4" :
-            val = val + int(activeButton[4:])
-        if activeButton[3] == "5" :
-            val = val + int(activeButton[4:])
-        if activeButton[3] == "6" :
-            val = val + int(activeButton[4:])
+        if touchScreen :
+            if activeButton[3] == "1" :
+                val = val - int(activeButton[4:])
+            if activeButton[3] == "2" :
+                val = val - int(activeButton[4:])
+            if activeButton[3] == "3" :
+                val = val - int(activeButton[4:])
+            if activeButton[3] == "4" :
+                val = val + int(activeButton[4:])
+            if activeButton[3] == "5" :
+                val = val + int(activeButton[4:])
+            if activeButton[3] == "6" :
+                val = val + int(activeButton[4:])
+        elif not touchScreen :
+            if selectScroll[1] :
+                if selectScroll[0][3] == "1" :
+                    val = val - int(selectScroll[0][4:])
+                if selectScroll[0][3] == "2" :
+                    val = val - int(selectScroll[0][4:])
+                if selectScroll[0][3] == "3" :
+                    val = val - int(selectScroll[0][4:])
+                if selectScroll[0][3] == "4" :
+                    val = val + int(selectScroll[0][4:])
+                if selectScroll[0][3] == "5" :
+                    val = val + int(selectScroll[0][4:])
+                if selectScroll[0][3] == "6" :
+                    val = val + int(selectScroll[0][4:])
 
         return val
+
+    print(selectScroll)
 
     if activeButton == "b0" :
         dialogueBox = "graphSettings"
@@ -3278,6 +3377,13 @@ def graphScreen():
                 altList = [[0, 0]]
                 velList = [[0, 0]]
                 radAltList = [[0, 0]]
+        if selectScroll[0] is not None :
+            if "x" in selectScroll[0] :
+                xLimit = editVal(xLimit)
+            if "alt" in selectScroll[0] :
+                altLimit = editVal(altLimit)
+            if "vel" in selectScroll[0] :
+                velLimit = editVal(velLimit)
 
     if touchScreen :
         if  activeButton == "b0" :
@@ -3483,17 +3589,10 @@ def startupScreen() :
     global vessel
     global gameTimeText
     global gameTime
-
-    screen.fill((10, 10, 10))
-
-    versionText = "Alpha Version 1.0.0"
-    titleText = "Multi Functional Display"
-    textFunc(versionText, c["white"], (512 + leftAlign, 576), "centre")
-    textFunc(titleText, c["white"], (512 + leftAlign, 610), "centre")
-
-    screen.blit(logo, (302, 184))
-
-    pygame.display.update()
+    global width
+    global height
+    global screen
+    global serialWorking
 
     homeScreenFunctions = settingsRead(r"settings/home screen shortcut settings.txt")
     mainSettings        = settingsRead(r"settings/main settings.txt")
@@ -3518,11 +3617,35 @@ def startupScreen() :
 
     if mainSettings[3] == "True" :
         realButtons = True
+        time.sleep(0.5)
     elif mainSettings[3] == "False" :
         realButtons = False
 
-    loadButtons()
+    if sideButtons :
+        width, height = 1204, 768
+        screen = pygame.display.set_mode((width, height), HWSURFACE | DOUBLEBUF | RESIZABLE)
+        loadButtons()
+    if not sideButtons :
+        width, height = 1024, 768
+        screen = pygame.display.set_mode((width, height), HWSURFACE | DOUBLEBUF | RESIZABLE)
+
+    screen.fill((10, 10, 10))
+
+    versionText = "Beta Version 1.4.36"
+    titleText = "Multi Functional Display"
+    textFunc(versionText, c["white"], (512 + leftAlign, 576), "centre")
+    textFunc(titleText, c["white"], (512 + leftAlign, 610), "centre")
+
+    screen.blit(logo, ((width / 2) - 300, (height / 2) - 200))
+
+    pygame.display.update()
+
+    #serialWorking = checkSerial()
     checkConnection()
+
+    if not serialWorking :
+        sideButtons = True
+        realButtons = False
 
     if allowErrors :
         try :
@@ -3628,7 +3751,7 @@ def extraDialogue() :
 
         runOnce = 1
 
-    if buttonType == 1 :
+    if not touchScreen :
         if selectScroll[1] is not None:
             if not selectScroll[1] :
                 dialogueBox   = None
@@ -3650,7 +3773,7 @@ def extraDialogue() :
                     dialogueBox = None
                     screenShowing = "engine"
 
-    if buttonType == 0 :
+    if touchScreen :
         clearButtonsVar = ["setting", "science", "maneuver", "graph", "engine"]
 
         if activeButton == "setting" :
@@ -3845,7 +3968,6 @@ def settingsDialogue() :
 # SETTINGS SCREEN DIALOGUE
 def settingScreenDialogue() :
     global runOnce1
-    global activeScroll
     global touchScreen
     global buttonType
     global fullscreen
@@ -3864,11 +3986,15 @@ def settingScreenDialogue() :
 
     if runOnce1 == 0 :
         newButton((posX + 20, posY + (lineSpace * 1) - 4), (324, 28), "fullscreen", buttonType, (0, 0), drawTime = "back")
-        newButton((posX + 20, posY + (lineSpace * 2) - 4), (324, 28), "removeButtons", buttonType, (0, 1), drawTime = "back")
+        if realButtons :
+            newButton((posX + 20, posY + (lineSpace * 2) - 4), (324, 28), "removeButtons", buttonType, (0, 1), drawTime = "back")
         newButton((posX + 20, posY + (lineSpace * 3) - 4), (324, 28), "touchScreen", buttonType, (0, 2), drawTime = "back")
         newButton((posX + 20, posY + (lineSpace * 4) - 4), (324, 28), "realButtons", buttonType, (0, 3), drawTime = "back")
 
         runOnce1 = 1
+
+    if not realButtons :
+        rectFunc((posX + 20, posY + (lineSpace * 2) - 4), (324, 28), 2, c["white"], c["backGrey"])
 
     # title
     textFunc("Settings", c["white"], (0 + leftAlign, 0 + topAlign), "left", 25)
@@ -3885,13 +4011,13 @@ def settingScreenDialogue() :
     ##### remove buttons #####
     ##########################
 
-    # displays toggle indicator only when fullscreen is true
-    #if not fullscreen :
-    #    textFunc("  Remove Side Buttons", c["darkGrey"], (posX + 0, posY + (lineSpace * 2)), "left")
-    #    rectFunc((posX + 300, posY + (lineSpace * 2)), (40, 20), 1, c["white"], c["dialGrey"])
-    #elif fullscreen :
-    textFunc("  Remove Side Buttons", c["white"], (posX + 0, posY + (lineSpace * 2)), "left")
-    toggleIndicator((posX + 300, posY + (lineSpace * 2)), sideButtons)
+    # displays toggle indicator only when realbuttons is true
+    if not realButtons :
+        textFunc("  Remove Side Buttons", c["darkGrey"], (posX + 0, posY + (lineSpace * 2)), "left")
+        rectFunc((posX + 300, posY + (lineSpace * 2)), (40, 20), 1, c["white"], c["dialGrey"])
+    elif realButtons :
+        textFunc("  Remove Side Buttons", c["white"], (posX + 0, posY + (lineSpace * 2)), "left")
+        toggleIndicator((posX + 300, posY + (lineSpace * 2)), sideButtons)
 
     ##### touch screen #####
     ########################
@@ -3915,11 +4041,9 @@ def settingScreenDialogue() :
             if touchScreen :
                 buttonType = 0
                 clearScrollButtons("all")
-                runOnce1 = 0
             elif not touchScreen :
                 buttonType = 1
                 clearButtons("all")
-                runOnce1 = 0
 
             clearScrollButtons("all")
             clearButtons("reset")
@@ -3955,55 +4079,76 @@ def settingScreenDialogue() :
         if activeButton == "realButtons" :
             realButtons = not realButtons
 
+            if realButtons :
+                newButton((posX + 20, posY + (lineSpace * 2) - 4), (324, 28), "removeButtons", buttonType, (0, 1), drawTime = "back")
+                touchScreen = False
+
+                buttonType = 1
+                clearButtons("all")
+
+                clearScrollButtons("all")
+                clearButtons("reset")
+                checkSerial()
+
+                loadButtons()
+                runOnce1 = 0
+
 
     elif not touchScreen :
-        # if 'yes' or 'no' button is pushed
-        if selectScroll[1] is not None :
-            # if 'yes' button
-            if selectScroll[1] :
+        # if 'yes' button
+        if selectScroll[1] :
 
-                # if 'button 'x'' is selected
-                if selectScroll[0] == "touchScreen" :
-                    touchScreen = not touchScreen
+            # if 'button 'x'' is selected
+            if selectScroll[0] == "touchScreen" :
+                touchScreen = not touchScreen
 
-                    if touchScreen :
-                        buttonType = 0
-                        clearScrollButtons("all")
-                        runOnce1 = 0
-                    elif not touchScreen :
-                        buttonType = 1
-                        clearButtons("all")
-                        runOnce1 = 0
-
-                    clearScrollButtons(["all"])
-                    clearButtons("reset")
-                    loadButtons()
+                if touchScreen :
+                    buttonType = 0
+                    clearScrollButtons("all")
+                    runOnce1 = 0
+                elif not touchScreen :
+                    buttonType = 1
+                    clearButtons("all")
                     runOnce1 = 0
 
-                if selectScroll[0] == "fullscreen" :
-                    fullscreen = not fullscreen
+                clearScrollButtons(["all"])
+                clearButtons("reset")
+                loadButtons()
+                runOnce1 = 0
 
-                    if fullscreen :
-                        screen = pygame.display.set_mode((1920, 1080), HWSURFACE | DOUBLEBUF | FULLSCREEN)
-                    elif not fullscreen :
-                        # if not displayWidth == width and not displayHeight == height :
-                        screen = pygame.display.set_mode((width, height), HWSURFACE | DOUBLEBUF | RESIZABLE)
+            if selectScroll[0] == "fullscreen" :
+                fullscreen = not fullscreen
 
-                if selectScroll[0] == "removeButton" :
-                    sideButtons = not sideButtons
+                if fullscreen :
+                    screen = pygame.display.set_mode((1920, 1080), HWSURFACE | DOUBLEBUF | FULLSCREEN)
+                elif not fullscreen :
+                    # if not displayWidth == width and not displayHeight == height :
+                    screen = pygame.display.set_mode((width, height), HWSURFACE | DOUBLEBUF | RESIZABLE)
 
-                    if not sideButtons :
-                        clearButtons("reset")
-                        leftAlign = 0
-                        runOnce1 = 0
-                    elif sideButtons :
-                        clearButtons("reset")
-                        loadButtons()
-                        leftAlign = 90
-                        runOnce1 = 0
+            if selectScroll[0] == "removeButton" :
+                sideButtons = not sideButtons
 
-                if selectScroll[0] == "realButtons" :
-                    realButtons = not realButtons
+                if sideButtons :
+                    clearButtons("reset")
+                    leftAlign = 0
+                    width, height = 1024, 768
+                    screen = pygame.display.set_mode((width, height), HWSURFACE | DOUBLEBUF | RESIZABLE)
+                    runOnce1 = 0
+                elif not sideButtons :
+                    clearButtons("reset")
+                    loadButtons()
+                    leftAlign = 90
+                    width, height = 1204, 768
+                    screen = pygame.display.set_mode((width, height), HWSURFACE | DOUBLEBUF | RESIZABLE)
+                    runOnce1 = 0
+
+            if selectScroll[0] == "realButtons" :
+                realButtons = not realButtons
+
+                if realButtons :
+                    newButton((posX + 20, posY + (lineSpace * 2) - 4), (324, 28), "removeButtons", buttonType, (0, 1), drawTime = "back")
+                    touchScreen = False
+                    checkSerial()
 
     mainSettings = [str(fullscreen), str(sideButtons), str(touchScreen), str(realButtons)]
 
@@ -4110,6 +4255,12 @@ def graphSettingsDialogue() :
     global selectScroll
     global dialogueBox
     global runOnce
+    global runOnce1
+    global activeScroll
+
+    if runOnce1 == 0 :
+        activeScroll = [5, 0]
+        runOnce1 = 1
 
     # the dialogue box border
     posX, posY = 700 + leftAlign, 100 + topAlign
@@ -4128,16 +4279,16 @@ def graphSettingsDialogue() :
     textFunc(str(altLimit), c["grey"], (posX + (boxWidth / 2), posY + 190), "centre", 18)
     textFunc(str(velLimit), c["grey"], (posX + (boxWidth / 2), posY + 240), "centre", 18)
 
-    def createEditButtons(name, pos, low, med, hig) :
-        newButton((pos[0]      , pos[1]), (40, 20), name + "1" + str(hig), buttonType, (-5, 1), "<<<")
-        newButton((pos[0] + 45 , pos[1]), (30, 20), name + "2" + str(med), buttonType, (-4, 1), "<<")
-        newButton((pos[0] + 80 , pos[1]), (20, 20), name + "3" + str(low), buttonType, (-3, 1), "<")
-        newButton((pos[0] + 190, pos[1]), (20, 20), name + "4" + str(low), buttonType, (-2, 1), ">")
-        newButton((pos[0] + 215, pos[1]), (30, 20), name + "5" + str(med), buttonType, (-1, 1), ">>")
-        newButton((pos[0] + 250, pos[1]), (40, 20), name + "6" + str(hig), buttonType, (0, 1), ">>>")
+    def createEditButtons(name, pos, low, med, hig, regY) :
+        newButton((pos[0]      , pos[1]), (40, 20), name + "1" + str(hig), buttonType, (0, regY), "<<<")
+        newButton((pos[0] + 45 , pos[1]), (30, 20), name + "2" + str(med), buttonType, (1, regY), "<<")
+        newButton((pos[0] + 80 , pos[1]), (20, 20), name + "3" + str(low), buttonType, (2, regY), "<")
+        newButton((pos[0] + 190, pos[1]), (20, 20), name + "4" + str(low), buttonType, (3, regY), ">")
+        newButton((pos[0] + 215, pos[1]), (30, 20), name + "5" + str(med), buttonType, (4, regY), ">>")
+        newButton((pos[0] + 250, pos[1]), (40, 20), name + "6" + str(hig), buttonType, (5, regY), ">>>")
 
     if runOnce == 0 :
-        newButton((posX + 210, posY + 40), (80, 25), "reset", buttonType, (0, 0), "Reset")
+        newButton((posX + 210, posY + 40), (80, 25), "reset", buttonType, (5, 0), "Reset")
 
         #newButton((buttonPos[0]     , buttonPos[1]), (40, 20), "x-60", buttonType, (-5, 1), "<<<")
         #newButton((buttonPos[0] + 45, buttonPos[1]), (30, 20), "x-10", buttonType, (-4, 1), "<<")
@@ -4146,10 +4297,10 @@ def graphSettingsDialogue() :
         #newButton((buttonPos[0] + 215, buttonPos[1]), (30, 20), "x+10", buttonType, (-1, 1), ">>")
         #newButton((buttonPos[0] + 250, buttonPos[1]), (40, 20), "x+60", buttonType, (0, 1), ">>>")
 
-        createEditButtons("x  ", (posX + 5, posY +135), 1, 10, 60)
+        createEditButtons("x  ", (posX + 5, posY +135), 1, 10, 60, 1) # time value (x axis)
 
-        createEditButtons("alt", (posX + 5, posY + 190), 100, 1000, 10000)
-        createEditButtons("vel", (posX + 5, posY + 240), 10, 100, 1000)
+        createEditButtons("alt", (posX + 5, posY + 190), 100, 1000, 10000, 2)
+        createEditButtons("vel", (posX + 5, posY + 240), 10, 100, 1000, 3)
 
         runOnce = 1
 
@@ -4196,23 +4347,33 @@ while 1 :
                 pygame.display.flip()
 
         # if mouse button one is clicked
-        if click[0] == 1:
+        if click[0] == 1 :
             returned = checkButtons(mousePos)
             # checks whether a the active button is the same as the one currently being clicked
             # this allows the click of a button to activate the active button once rather than repeatedly during the same click
-            if returned != activeButton and not clicked :
+            if returned != activeButton : #and not clicked :
                 activeButton = returned
-            elif returned == activeButton and clicked :
-                activeButton = None
-            clicked = True
-
+            #elif returned == activeButton and clicked :
+            #    print("activated")
+            #    activeButton = None
         # resets the active button when mouse is released
         if click[0] == 0:
-            clicked = False
             activeButton = None
 
         # reset mouse button
         click = (0, 0, 0)
+
+
+        if realButtons :
+
+            returned = checkRealButtons()
+
+            if returned != activeButton and previousReturned != returned :
+                activeButton = returned
+            elif previousReturned == returned :
+                activeButton = None
+
+            previousReturned = returned
 
 
         # sets the select scroll to blank
@@ -4224,7 +4385,7 @@ while 1 :
         screen.fill((40, 40, 40))
 
         # edge lines
-        if not sideButtons :
+        if sideButtons :
             pygame.draw.line(screen, c["white"], (89, 5), (89, 763), 1)
             pygame.draw.line(screen, c["white"], (1115, 5), (1115, 763), 1)
 
@@ -4232,53 +4393,6 @@ while 1 :
         drawScrollButtons("back")
 
         oldDialogueBox = dialogueBox
-
-        if realButtons :
-            buttonInput = detectButton()
-            #buttonInput = 99
-
-            if buttonInput == 99 :
-                pass
-            elif buttonInput == 22 :
-                activeButton = "a1"
-            elif buttonInput == 23 :
-                activeButton = "a2"
-            elif buttonInput == 24 :
-                activeButton = "a3"
-            elif buttonInput == 25 :
-                activeButton = "a4"
-            elif buttonInput == 26 :
-                activeButton = "a5"
-            elif buttonInput == 27 :
-                activeButton = "a6"
-            elif buttonInput == 28 :
-                activeButton = "a7"
-            elif buttonInput == 29 :
-                activeButton = "a8"
-
-            elif buttonInput == 30 :
-                activeButton = "b1"
-            elif buttonInput == 31 :
-                activeButton = "b2"
-            elif buttonInput == 32 :
-                activeButton = "b3"
-            elif buttonInput == 33 :
-                activeButton = "b4"
-            elif buttonInput == 34 :
-                activeButton = "b5"
-            elif buttonInput == 35 :
-                activeButton = "b6"
-
-            elif buttonInput == 36 :
-                activeButton = "j1"
-            elif buttonInput == 37 :
-                activeButton = "j2"
-            elif buttonInput == 38 :
-                activeButton = "j3"
-            elif buttonInput == 39 :
-                activeButton = "j4"
-
-            print(buttonInput)
 
         if not touchScreen :
             for button in scrollButtonList :
